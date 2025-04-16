@@ -26,13 +26,18 @@
             display: none;
             position: relative;
             text-align: center;
+            width: 100%;
+            height: 100%;
         }
         img {
-            width: 95%;
-            max-height: 90vh;
-            border-radius: 15px;
+            width: 100%; /* عرض كامل */
+            max-width: 95vw; /* تجنب التجاوز */
+            height: auto; /* الحفاظ على النسب */
+            max-height: 90vh; /* حد أقصى للارتفاع */
+            border-radius: 10px; /* زوايا مستديرة خفيفة */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             transition: transform 0.3s ease, opacity 0.2s ease;
+            object-fit: contain; /* ضمان عرض الصورة بشكل كامل */
         }
         img:hover {
             transform: scale(1.02);
@@ -207,12 +212,22 @@
             }
         });
 
-        // اكتشاف اللمس على الأجهزة المحمولة
+        // اكتشاف اللمس على الأجهزة المحمولة (محسن)
+        let touchTimeout;
         document.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 2) {
+            if (e.touches.length > 1) { // اكتشاف لمس متعدد
+                clearTimeout(touchTimeout);
                 showBlockScreen();
                 hideImageTemporarily();
             }
+        });
+
+        // اكتشاف إيماءات التقاط الشاشة على الهاتف
+        document.addEventListener('touchend', () => {
+            touchTimeout = setTimeout(() => {
+                showBlockScreen();
+                hideImageTemporarily();
+            }, 100); // تأخير قصير لاكتشاف الإيماءات
         });
 
         // التحقق من كلمة المرور
@@ -227,7 +242,7 @@
                 loader.style.display = 'none';
                 if (password === correctPassword) {
                     document.getElementById('password-modal').style.display = 'none';
-                    document.getElementById('image-container').style.display = 'block';
+                    document.getElementById('image-container').style.display = 'flex'; // ضمان عرض كامل
                 } else {
                     errorMessage.style.display = 'block';
                 }
