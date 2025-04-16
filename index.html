@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="robots" content="noindex, nofollow">
     <title>موقع محمي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
@@ -28,14 +28,17 @@
             text-align: center;
         }
         img {
-            max-width: 85%;
-            max-height: 85vh;
+            width: 95%;
+            max-height: 90vh;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.2s ease;
         }
         img:hover {
             transform: scale(1.02);
+        }
+        img.protected {
+            display: none; /* إخفاء الصورة تمامًا */
         }
         .overlay {
             position: absolute;
@@ -181,6 +184,7 @@
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             showBlockScreen();
+            hideImageTemporarily();
         });
 
         // منع السحب
@@ -199,13 +203,15 @@
                 (e.metaKey && e.altKey && e.key === 'I')) {
                 e.preventDefault();
                 showBlockScreen();
+                hideImageTemporarily();
             }
         });
 
         // اكتشاف اللمس على الأجهزة المحمولة
         document.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) {
+            if (e.touches.length > 2) {
                 showBlockScreen();
+                hideImageTemporarily();
             }
         });
 
@@ -234,15 +240,25 @@
             blockScreen.style.display = 'flex';
             setTimeout(() => {
                 blockScreen.style.display = 'none';
-            }, 2000); // إخفاء بعد ثانيتين
+            }, 3000); // إخفاء بعد 3 ثوانٍ
+        }
+
+        // إخفاء الصورة تمامًا
+        function hideImageTemporarily() {
+            const img = document.querySelector('img');
+            img.classList.add('protected');
+            setTimeout(() => {
+                img.classList.remove('protected');
+            }, 2500); // إعادة الظهور بعد 2.5 ثانية
         }
 
         // اكتشاف تبديل النوافذ
         window.addEventListener('blur', () => {
             showBlockScreen();
+            hideImageTemporarily();
         });
 
-        // إضافة Watermark ديناميكي
+        // إضافة Watermark ديناميكي كإجراء احتياطي
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = document.querySelector('img');
@@ -251,9 +267,10 @@
             canvas.width = img.width;
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
-            ctx.font = '40px Tajawal';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = '50px Tajawal';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ctx.fillText('تم حماية الصورة من الحفظ من قبل 77599875', canvas.width / 2, canvas.height / 2);
             img.src = canvas.toDataURL();
         };
