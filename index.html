@@ -28,16 +28,17 @@
             text-align: center;
             width: 100%;
             height: 100%;
+            padding: 20px; /* هامش لإبعاد الصورة عن الحواف */
         }
         img {
-            width: 100%; /* عرض كامل */
-            max-width: 95vw; /* تجنب التجاوز */
-            height: auto; /* الحفاظ على النسب */
-            max-height: 90vh; /* حد أقصى للارتفاع */
-            border-radius: 10px; /* زوايا مستديرة خفيفة */
+            width: 100%;
+            max-width: 90vw; /* تجنب التجاوز */
+            height: auto;
+            max-height: 85vh; /* تقليل الارتفاع لإعطاء مساحة */
+            border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             transition: transform 0.3s ease, opacity 0.2s ease;
-            object-fit: contain; /* ضمان عرض الصورة بشكل كامل */
+            object-fit: contain; /* عرض الصورة بالكامل */
         }
         img:hover {
             transform: scale(1.02);
@@ -213,9 +214,11 @@
         });
 
         // اكتشاف اللمس على الأجهزة المحمولة (محسن)
+        let touchCount = 0;
         let touchTimeout;
         document.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) { // اكتشاف لمس متعدد
+            touchCount = e.touches.length;
+            if (touchCount > 2) { // لمس متعدد (التقاط محتمل)
                 clearTimeout(touchTimeout);
                 showBlockScreen();
                 hideImageTemporarily();
@@ -223,11 +226,14 @@
         });
 
         // اكتشاف إيماءات التقاط الشاشة على الهاتف
-        document.addEventListener('touchend', () => {
-            touchTimeout = setTimeout(() => {
-                showBlockScreen();
-                hideImageTemporarily();
-            }, 100); // تأخير قصير لاكتشاف الإيماءات
+        document.addEventListener('touchend', (e) => {
+            if (touchCount >= 1) { // اكتشاف نهاية اللمس السريع
+                touchTimeout = setTimeout(() => {
+                    showBlockScreen();
+                    hideImageTemporarily();
+                }, 50); // تأخير قصير لالتقاط الإيماءات
+            }
+            touchCount = 0;
         });
 
         // التحقق من كلمة المرور
@@ -242,7 +248,7 @@
                 loader.style.display = 'none';
                 if (password === correctPassword) {
                     document.getElementById('password-modal').style.display = 'none';
-                    document.getElementById('image-container').style.display = 'flex'; // ضمان عرض كامل
+                    document.getElementById('image-container').style.display = 'flex';
                 } else {
                     errorMessage.style.display = 'block';
                 }
@@ -251,7 +257,7 @@
 
         // عرض شاشة الحظر مع الرسالة
         function showBlockScreen() {
-            const blockScreen = document.getElementById('block-screen');
+            const blockScreen = document.getElementBy_getElementById('block-screen');
             blockScreen.style.display = 'flex';
             setTimeout(() => {
                 blockScreen.style.display = 'none';
@@ -267,10 +273,13 @@
             }, 2500); // إعادة الظهور بعد 2.5 ثانية
         }
 
-        // اكتشاف تبديل النوافذ
+        // اكتشاف تبديل النوافذ (محسن)
         window.addEventListener('blur', () => {
-            showBlockScreen();
-            hideImageTemporarily();
+            // التحقق من أن الحدث ليس بسبب التقريب أو تغيير الإضاءة
+            if (!document.hasFocus()) {
+                showBlockScreen();
+                hideImageTemporarily();
+            }
         });
 
         // إضافة Watermark ديناميكي كإجراء احتياطي
