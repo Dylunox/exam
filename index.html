@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>موقع محمي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a1a, #2c3e50);
+            font-family: 'Tajawal', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+        #image-container {
+            display: none;
+            position: relative;
+            text-align: center;
+        }
+        img {
+            max-width: 85%;
+            max-height: 85vh;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            transition: transform 0.3s ease;
+        }
+        img:hover {
+            transform: scale(1.02);
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            background: transparent;
+        }
+        #password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            animation: fadeIn 0.5s ease;
+        }
+        .modal-content {
+            background: #2c2c2c;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            width: 90%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease;
+        }
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #444;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: background 0.3s;
+        }
+        .modal-content input:focus {
+            background: #555;
+        }
+        .modal-content button {
+            padding: 12px 30px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        .modal-content button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        #error-message {
+            color: #ff4d4d;
+            display: none;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        #block-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            padding: 20px;
+            animation: flash 0.5s ease;
+        }
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes flash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="password-modal">
+        <div class="modal-content">
+            <h2>أدخل كلمة المرور</h2>
+            <input type="password" id="password" placeholder="كلمة المرور" />
+            <button onclick="checkPassword()">تسجيل الدخول</button>
+            <div class="loader" id="loader"></div>
+            <div id="error-message">كلمة المرور غير صحيحة!</div>
+        </div>
+    </div>
+    <div id="image-container">
+        <div class="overlay"></div>
+        <img src="https://i.postimg.cc/SxJ0060T/IMG-20250416-172757.jpg" alt="Protected Image" />
+    </div>
+    <div id="block-screen">تم حماية الصورة من الحفظ من قبل 77599875</div>
+
+    <script>
+        // كلمة المرور
+        const correctPassword = 'password123';
+
+        // منع النقر الأيمن
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showBlockScreen();
+        });
+
+        // منع السحب
+        document.querySelector('img').setAttribute('draggable', false);
+
+        // منع تحديد النص
+        document.addEventListener('selectstart', e => e.preventDefault());
+
+        // منع مفاتيح الاختصار لالتقاط الشاشة وأدوات المطورين
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'PrintScreen' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                (e.ctrlKey && e.key === 's') || 
+                (e.ctrlKey && e.key === 'p') || 
+                e.key === 'F12' || 
+                (e.metaKey && e.altKey && e.key === 'I')) {
+                e.preventDefault();
+                showBlockScreen();
+            }
+        });
+
+        // اكتشاف اللمس على الأجهزة المحمولة
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) {
+                showBlockScreen();
+            }
+        });
+
+        // التحقق من كلمة المرور
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('error-message');
+            loader.style.display = 'block';
+            errorMessage.style.display = 'none';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                if (password === correctPassword) {
+                    document.getElementById('password-modal').style.display = 'none';
+                    document.getElementById('image-container').style.display = 'block';
+                } else {
+                    errorMessage.style.display = 'block';
+                }
+            }, 1000);
+        }
+
+        // عرض شاشة الحظر مع الرسالة
+        function showBlockScreen() {
+            const blockScreen = document.getElementById('block-screen');
+            blockScreen.style.display = 'flex';
+            setTimeout(() => {
+                blockScreen.style.display = 'none';
+            }, 2000); // إخفاء بعد ثانيتين
+        }
+
+        // اكتشاف تبديل النوافذ
+        window.addEventListener('blur', () => {
+            showBlockScreen();
+        });
+
+        // إضافة Watermark ديناميكي
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = document.querySelector('img');
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            ctx.font = '40px Tajawal';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.textAlign = 'center';
+            ctx.fillText('تم حماية الصورة من الحفظ من قبل 77599875', canvas.width / 2, canvas.height / 2);
+            img.src = canvas.toDataURL();
+        };
+
+        // منع التحميل المباشر للصورة
+        img.addEventListener('load', () => {
+            img.setAttribute('referrerpolicy', 'no-referrer');
+        });
+    </script>
+</body>
+</html>
